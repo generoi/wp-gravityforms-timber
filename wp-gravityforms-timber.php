@@ -45,7 +45,7 @@ class WP_Gravityforms_Timber
 
     public function register_scripts() {
         $path = plugin_dir_url(__FILE__);
-        wp_register_script('wp-gravityforms-timber/js', $path . 'dist/wp-gravityforms-timber.js', ['jquery'], $this->version);
+        wp_register_script('wp-gravityforms-timber/js', $path . 'dist/wp-gravityforms-timber.js', ['jquery'], $this->version, true);
 
         $options = apply_filters('gravityforms-timber/options', [
             'language' => get_locale(),
