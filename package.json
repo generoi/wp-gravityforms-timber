@@ -9,7 +9,8 @@
     "build:production": "webpack -p --progress --config webpack.config.js",
     "lint": "npm run -s lint:scripts",
     "lint:scripts": "prettier --single-quote --trailing-comma=es5 --write js/**/*.js",
-    "test": "npm run -s lint:scripts -- --list-different"
+    "test": "npm run -s lint:scripts -- --list-different",
+    "precommit": "lint-staged"
   },
   "browserslist": [
     "last 2 versions",
@@ -19,6 +20,12 @@
   "prettier": {
     "singleQuote": true,
     "trailingComma": "es5"
+  },
+  "lint-staged": {
+    "*.js": [
+      "lint:scripts",
+      "git add"
+    ]
   },
   "repository": {
     "type": "git",
@@ -32,6 +39,8 @@
   "homepage": "https://github.com/generoi/wp-gravityforms-timber#readme",
   "devDependencies": {
     "buble-loader": "^0.4.1",
+    "husky": "^0.14.3",
+    "lint-staged": "^4.0.2",
     "prettier": "^1.5.3",
     "webpack": "^3.3.0"
   },
