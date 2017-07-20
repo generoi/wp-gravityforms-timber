@@ -170,11 +170,12 @@ class AjaxForm {
    * Display inline error messages next to form elements.
    */
   addInlineErrorMessages(jqXHR) {
-    // Clean up old error classes.
+    // Clean up old error classes and messages.
     this.$context
       .find('.is-invalid-label, .is-invalid-input')
       .removeClass('is-invalid-label')
       .removeClass('is-invalid-input');
+    this.$context.find('.form-error').remove();
 
     if (jqXHR.responseJSON && jqXHR.responseJSON.data) {
       const data = jqXHR.responseJSON.data;
@@ -222,7 +223,6 @@ class AjaxForm {
     if (message) {
       // Remove old inline error messages and add the current one.
       const html = `<span class="form-error is-visible">${message}</span>`;
-      $element.find('.form-error').remove();
 
       if ($field.is('[type=radio]') || $field.is('[type=checkbox]') || !$field.length) {
         // If it's a checkbox or radio input, it's possible that the label
