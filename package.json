@@ -1,0 +1,41 @@
+{
+  "name": "wp-gravityforms-timber",
+  "version": "1.0.0",
+  "description": "",
+  "main": "js/wp-gravityforms-timber.js",
+  "scripts": {
+    "build": "npm run -s build:production",
+    "build:development": "webpack --progress --config webpack.config.js",
+    "build:production": "webpack -p --progress --config webpack.config.js",
+    "lint": "npm run -s lint:scripts",
+    "lint:scripts": "prettier --single-quote --trailing-comma=es5 --write js/**/*.js",
+    "test": "npm run -s lint:scripts -- --list-different"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "android 4",
+    "opera 12"
+  ],
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/generoi/wp-gravityforms-timber.git"
+  },
+  "author": "Oskar Schöldström",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/generoi/wp-gravityforms-timber/issues"
+  },
+  "homepage": "https://github.com/generoi/wp-gravityforms-timber#readme",
+  "devDependencies": {
+    "buble-loader": "^0.4.1",
+    "prettier": "^1.5.3",
+    "webpack": "^3.3.0"
+  },
+  "dependencies": {
+    "es6-object-assign": "^1.1.0"
+  }
+}
