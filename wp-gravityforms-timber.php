@@ -47,7 +47,7 @@ class WP_Gravityforms_Timber
         $path = plugin_dir_url(__FILE__);
         wp_register_script('wp-gravityforms-timber/js', $path . 'dist/wp-gravityforms-timber.js', ['jquery'], $this->version);
 
-        wp_localize_script('wp-gravityforms-timber/js', 'WP_Gravityforms_Timber', [
+        $options = apply_filters('gravityforms-timber/options', [
             'language' => get_locale(),
             'honeypot' => 'form-question-answer',
             'l10n' => [
@@ -56,6 +56,7 @@ class WP_Gravityforms_Timber
                 'error_form_general' => __('Something went wrong. Your form could not be submitted.', 'wp-gravityforms-timber'),
             ],
         ]);
+        wp_localize_script('wp-gravityforms-timber/js', 'WP_Gravityforms_Timber', $options);
     }
 
     /**

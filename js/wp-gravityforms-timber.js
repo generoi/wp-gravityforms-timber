@@ -1,7 +1,3 @@
-import objectAssign from 'es6-object-assign';
-
-objectAssign.polyfill();
-
 class AjaxForm {
   constructor(form, options = {}) {
     this.options = Object.assign(
@@ -16,23 +12,27 @@ class AjaxForm {
         language: 'en',
         l10n: {},
       },
+      // options set through wp_localize_script.
       window.WP_Gravityforms_Timber,
-      options
+      // options passed directly to the constructor.
+      options,
+      // options set through data-attributes.
+      $(this.form).data()
     );
 
     this.form = form;
     this.id = this.form.id.replace('form--', '');
     this.$context = $(this.form);
     this.$submit = this.$context.find('input[type="submit"]');
-    this.$messageContainer = this.$context.find(
-      this.options.messageSelector
-    );
+    this.$messageContainer = this.$context.find(this.options.messageSelector);
 
     this.setStartTime(Date.now());
     // Load reCaptcha script.
     if (this.options.recaptcha) {
       this.loadRecaptcha();
     }
+    // Submit handler
+    this.$context.on('submit', this.submit.bind(this));
   }
 
   setStartTime(timestamp) {
@@ -131,7 +131,8 @@ class AjaxForm {
    * Apply the confirmation action
    */
   applyConfirmation() {
-    const confirmation = window.formConfirmation && window.formConfirmation[this.form.id];
+    const confirmation =
+      window.formConfirmation && window.formConfirmation[this.form.id];
     console.log(confirmation);
 
     // If a global JS variable defines the confirmation
@@ -148,7 +149,8 @@ class AjaxForm {
       }
     } else {
       // If there's hidden confirmation message in the form.
-      const $confirmation = this.$context.find(this.confirmationSelector)
+      const $confirmation = this.$context
+        .find(this.confirmationSelector)
         .show()
         .removeClass('is-hidden');
 
@@ -224,7 +226,11 @@ class AjaxForm {
       // Remove old inline error messages and add the current one.
       const html = `<span class="form-error is-visible">${message}</span>`;
 
-      if ($field.is('[type=radio]') || $field.is('[type=checkbox]') || !$field.length) {
+      if (
+        $field.is('[type=radio]') ||
+        $field.is('[type=checkbox]') ||
+        !$field.length
+      ) {
         // If it's a checkbox or radio input, it's possible that the label
         // is positioned after the input. Alternatively in the case of
         // Gravityform checkbox lists, the field name doesn't match the labels.
@@ -287,23 +293,4 @@ class AjaxForm {
   }
 }
 
-export default function(selector = 'form[data-ajax]', options = {}) {
-  const currentTime = Date.now();
-
-  $(selector).each((i, el) => {
-    if (!el.ajaxForm) {
-      el.ajaxForm = new AjaxForm(el, options);
-    }
-  });
-
-  $(document).on('submit', selector, e => {
-    const form = e.target;
-    if (!form.ajaxForm) {
-      form.ajaxForm = new AjaxForm(form, options);
-      form.ajaxForm.setStartTime(currentTime);
-    }
-
-    form.ajaxForm.submit();
-    return false;
-  });
-}
+export default AjaxForm;
