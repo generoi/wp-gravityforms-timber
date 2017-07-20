@@ -44,7 +44,7 @@ class AjaxForm {
    */
   submit() {
     if (this.formSubmitted) {
-      return;
+      return false;
     }
     this.formSubmitted = true;
 
@@ -73,6 +73,8 @@ class AjaxForm {
     })
       .done(this.done.bind(this))
       .fail(this.fail.bind(this));
+
+    return false;
   }
 
   /**
