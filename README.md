@@ -12,6 +12,7 @@
 - Provides a _Machine name_ setting for Gravity Form fields that can be used to fetch field meta easier than by ID
 - Supports both Gravity Form endpoints as well as general WP REST endpoints.
 - Provides inline field validation using Foundation markup.
+- Provides an option on a per-form basis to disable the Timber integration and use core Gravity Form logic instead.
 
 ## Markup and Timber integration
 
