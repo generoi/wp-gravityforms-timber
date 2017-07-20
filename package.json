@@ -4,6 +4,7 @@
   "description": "",
   "main": "js/wp-gravityforms-timber.js",
   "scripts": {
+    "start": "webpack --hide-modules --watch --config webpack.config.js",
     "build": "npm run -s build:production",
     "build:development": "webpack --progress --config webpack.config.js",
     "build:production": "webpack -p --progress --config webpack.config.js",
