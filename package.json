@@ -22,7 +22,7 @@
     "trailingComma": "es5"
   },
   "lint-staged": {
-    "*.js": [
+    "js/*.js": [
       "lint:scripts",
       "git add"
     ]
