@@ -20,7 +20,7 @@ The plugin does not come with any front-end, instead the theme should provide it
 
 ## Other REST endpoints
 
-You can use the AJAX form submission feature on any WP REST API endpoint.
+You can use the AJAX form submission feature on any WP REST API endpoint. If you set `data-ajax` it will be initialized automatically, otherwise you can initialize it yourself through the JS constructor.
 
 ```html
 <form action="/wp-json/sage/v1/experiences" method="POST" data-ajax id="form--experiences">
