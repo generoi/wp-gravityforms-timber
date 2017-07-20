@@ -40,14 +40,22 @@ class WP_Gravityforms_Timber
         add_filter('gform_form_args', [$this, 'save_form_args'], 10, 1);
         add_action('gform_field_standard_settings', [$this, 'field_general_settings'], 10, 2);
         add_action('gform_editor_js', [$this, 'editor_js']);
-        add_filter('get_twig', [$this, 'get_twig']);
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
+        add_action('wp_enqueue_scripts', [$this, 'register_scripts']);
     }
 
-    public function enqueue_scripts() {
+    public function register_scripts() {
         $path = plugin_dir_url(__FILE__);
         wp_register_script('wp-gravityforms-timber/js', $path . 'dist/wp-gravityforms-timber.js', ['jquery'], $this->version);
-        wp_enqueue_script('wp-gravityforms-timber/js');
+
+        wp_localize_script('wp-gravityforms-timber/js', 'WP_Gravityforms_Timber', [
+            'language' => get_locale(),
+            'honeypot' => 'form-question-answer',
+            'l10n' => [
+                'error_recaptcha' => __('The CAPTCHA challenge did not validate', 'wp-gravtyforms-timber'),
+                'error_form_param' => __('There was a problem with your submitted data, please verify your fields.', 'wp-gravityforms-timber'),
+                'error_form_general' => __('Something went wrong. Your form could not be submitted.', 'wp-gravityforms-timber'),
+            ],
+        ]);
     }
 
     /**
@@ -139,45 +147,11 @@ class WP_Gravityforms_Timber
         if (!$html) {
             return $form_string;
         }
+
+        wp_enqueue_script('wp-gravityforms-timber/js');
+
         return $html;
     }
-
-    /**
-     * Add some twig helpers.
-     */
-    public function get_twig($twig) {
-        $twig->addFunction('gform_field_name', new Twig_SimpleFunction('gform_field_name', function ($machine_name, $form_id) {
-            $form = GFFormsModel::get_form_meta($form_id);
-            if (!isset($form['fields'])) {
-                return 'form-not-found';
-            }
-            $field = wp_list_filter($form['fields'], ['machineName' => $machine_name]);
-            if (empty($field)) {
-                return 'field-not-found';
-            }
-            $field = reset($field);
-            return "input_{$form_id}_{$field->id}";
-        }));
-
-        $twig->addFunction('gform_field', new Twig_SimpleFunction('gform_field', function ($machine_name, $form_id) {
-            $form = GFFormsModel::get_form_meta($form_id);
-            if (!isset($form['fields'])) {
-                return 'form-not-found';
-            }
-            $field = wp_list_filter($form['fields'], ['machineName' => $machine_name]);
-            if (empty($field)) {
-                return 'field-not-found';
-            }
-            return reset($field);
-        }));
-
-        $twig->addFunction('gform', new Twig_SimpleFunction('gform', function ($form_id) {
-            return GFFormsModel::get_form_meta($form_id);
-        }));
-
-        return $twig;
-    }
-
 
     /**
     * Store the arguments passed by shortcode attributes and inject them again

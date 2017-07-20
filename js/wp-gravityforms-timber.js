@@ -7,11 +7,16 @@ class AjaxForm {
     this.options = Object.assign(
       {
         recaptcha: false,
-        errorMessageSelector: '.form-error-message',
+        messageSelector: '.form__messages',
+        confirmationSelector: '.form__confirmation',
+        elementSelector: '.form__element',
         honeypot: 'form-question-answer',
         honeypotMinDuration: 1000,
         showTopErrorMessage: true,
+        language: 'en',
+        l10n: {},
       },
+      window.WP_Gravityforms_Timber,
       options
     );
 
@@ -19,10 +24,9 @@ class AjaxForm {
     this.id = this.form.id.replace('form--', '');
     this.$context = $(this.form);
     this.$submit = this.$context.find('input[type="submit"]');
-    this.$errorMessageContainer = this.$context.find(
-      this.options.errorMessageSelector
+    this.$messageContainer = this.$context.find(
+      this.options.messageSelector
     );
-    this.confirmation = window.formConfirmation[this.form.id];
 
     this.setStartTime(Date.now());
     // Load reCaptcha script.
@@ -62,8 +66,8 @@ class AjaxForm {
       processData: false,
       contentType: false,
       beforeSend: xhr => {
-        if (window.Sage.nonce) {
-          xhr.setRequestHeader('X-WP-Nonce', window.Sage.nonce);
+        if (this.options.nonce) {
+          xhr.setRequestHeader('X-WP-Nonce', this.options.nonce);
         }
       },
     })
@@ -83,12 +87,12 @@ class AjaxForm {
     this.addInlineErrorMessages(jqXHR);
 
     if (this.options.showTopErrorMessage) {
-      this.$errorMessageContainer
+      this.$messageContainer
         .show()
         .removeClass('is-hidden')
         .html(`<p>${this.getErrorMessage(jqXHR)}</p>`);
 
-      this.scrollTo(this.$errorMessageContainer);
+      this.scrollTo(this.$messageContainer);
     } else {
       this.scrollTo(this.$context.find('.is-invalid-label').first());
     }
@@ -126,17 +130,30 @@ class AjaxForm {
   /**
    * Apply the confirmation action
    */
-  applyConfirmation(confirmation = this.confirmation) {
-    switch (confirmation.type) {
-      case 'page':
-      case 'redirect':
-        window.location = confirmation.redirect;
-        break;
-      case 'message':
-        this.$context.html(confirmation.html);
+  applyConfirmation() {
+    const confirmation = window.formConfirmation && window.formConfirmation[this.form.id];
+    console.log(confirmation);
 
-        this.scrollTo(this.$context);
-        break;
+    // If a global JS variable defines the confirmation
+    if (confirmation && confirmation.type) {
+      switch (confirmation.type) {
+        case 'page':
+        case 'redirect':
+          window.location = confirmation.redirect;
+          break;
+        case 'message':
+          this.$context.html(confirmation.html);
+          this.scrollTo(this.$context);
+          break;
+      }
+    } else {
+      // If there's hidden confirmation message in the form.
+      const $confirmation = this.$context.find(this.confirmationSelector)
+        .show()
+        .removeClass('is-hidden');
+
+      this.$context.hide();
+      this.scrollTo($confirmation);
     }
   }
 
@@ -167,8 +184,8 @@ class AjaxForm {
           data.params.forEach(field => {
             this.setInputAsInvalid(field, data.message);
           });
-          // Object with invalid fields and their error message (invalid value).
         } else {
+          // Object with invalid fields and their error message (invalid value).
           Object.keys(data.params).forEach(field => {
             this.setInputAsInvalid(field, data.params[field]);
           });
@@ -185,17 +202,38 @@ class AjaxForm {
     }
   }
 
+  /**
+   * Mark an input and it's label as invalid.
+   */
   setInputAsInvalid(field, message) {
     const $field = this.$context.find(`[name="${field}"]`);
     const $label = this.$context.find(`label[for="${field}"]`);
+    const $element = $label.closest(this.options.elementSelector);
+
+    // Find all child labels and input fields, in some cases such as checkbox
+    // lists with Gravityforms the field name doesn't match the labels.
+    $element.find('label').addClass('is-invalid-label');
+    $element.find('input').addClass('is-invalid-input');
+    // Make sure the corretly referenced elements are marked as invalid.
+    // Primarily for custom forms.
     $field.addClass('is-invalid-input');
     $label.addClass('is-invalid-label');
-    if (
-      message &&
-      $field.not('[type=radio]') &&
-      $field.not('[type=checkbox]')
-    ) {
-      $field.after(`<span class="form-error is-visible">${message}</span>`);
+
+    if (message) {
+      // Remove old inline error messages and add the current one.
+      const html = `<span class="form-error is-visible">${message}</span>`;
+      $element.find('.form-error').remove();
+
+      if ($field.is('[type=radio]') || $field.is('[type=checkbox]') || !$field.length) {
+        // If it's a checkbox or radio input, it's possible that the label
+        // is positioned after the input. Alternatively in the case of
+        // Gravityform checkbox lists, the field name doesn't match the labels.
+        $element.append(html);
+      } else {
+        // As long as it's not a multiple list checkbox/radio, output directly
+        // after the field
+        $field.after(html);
+      }
     }
   }
 
@@ -204,6 +242,7 @@ class AjaxForm {
    * @see src/custom/rest-experiences.php
    */
   getErrorMessage(jqXHR) {
+    // REST API validation messages.
     if (jqXHR.responseJSON && jqXHR.responseJSON.code) {
       const response = jqXHR.responseJSON;
       const params = response.data.params;
@@ -212,24 +251,18 @@ class AjaxForm {
         case 'rest_invalid_param':
         case 'rest_missing_callback_param':
           if (params.hasOwnProperty('g-recaptcha-response')) {
-            return window.Sage.l10n.error_recaptcha;
+            return this.options.l10n.error_recaptcha;
           }
-          if (
-            params.hasOwnProperty('form_id') ||
-            params.hasOwnProperty('_wpnonce')
-          ) {
-            console.error('internal fields are missing');
-            console.error(params);
-            break;
-          }
-          return window.Sage.l10n.error_form_param;
+          return this.options.l10n.error_form_param;
       }
     }
-    return window.Sage.l10n.error_form_general;
+    return this.options.l10n.error_form_general;
   }
 
+  /**
+   * Validate the honeypot if it exists.
+   */
   validateHoneypot(value) {
-    console.log(value);
     if (value) {
       return false;
     }
@@ -243,7 +276,7 @@ class AjaxForm {
    * Load reCaptcha in the users language.
    */
   loadRecaptcha() {
-    let language = window.Sage.language || 'en';
+    let language = this.options.language;
     language = language.replace(/^([a-z]{2})-([a-z]{2})/, '$2');
 
     $.ajax({
