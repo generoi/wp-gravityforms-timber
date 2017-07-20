@@ -135,7 +135,7 @@ class WP_Gravityforms_Timber
             'form--' . sanitize_html_class($form['title']) . '.twig',
             'form--' . sanitize_html_class($form['title']) . '.php',
             'form--' . $form['id'] . '.twig',
-            'form-' . $form['id'] . '.php',
+            'form--' . $form['id'] . '.php',
             'form.twig',
             'form.php',
         ];

@@ -17,7 +17,7 @@ class AjaxForm {
       // options passed directly to the constructor.
       options,
       // options set through data-attributes.
-      $(this.form).data()
+      $(form).data()
     );
 
     this.form = form;
