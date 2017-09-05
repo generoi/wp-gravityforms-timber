@@ -9,6 +9,7 @@ Author URI:         http://genero.fi/
 License:            MIT License
 License URI:        http://opensource.org/licenses/MIT
 */
+
 if (!defined('ABSPATH')) {
   exit;
 }
@@ -41,6 +42,7 @@ class WP_Gravityforms_Timber
         add_action('gform_field_standard_settings', [$this, 'field_general_settings'], 10, 2);
         add_action('gform_editor_js', [$this, 'editor_js']);
         add_action('wp_enqueue_scripts', [$this, 'register_scripts']);
+        add_action('timber/twig', [$this, 'twig']);
     }
 
     public function register_scripts() {
@@ -171,6 +173,31 @@ class WP_Gravityforms_Timber
     protected function get_form_args($form_id)
     {
         return $this->gform_form_args[$form_id];
+    }
+
+    public function twig($twig)
+    {
+        $twig->addFunction(new Timber\Twig_Function('gform_field', [__CLASS__, 'gform_field']));
+        $twig->addFunction(new Timber\Twig_Function('gform', [__CLASS__, 'gform']));
+        return $twig;
+    }
+
+    public static function gform_field($machine_name, $form_id)
+    {
+        $form = GFFormsModel::get_form_meta($form_id);
+        if (!isset($form['fields'])) {
+            return 'form-not-found';
+        }
+        $field = wp_list_filter($form['fields'], ['machineName' => $machine_name]);
+        if (empty($field)) {
+            return 'field-not-found';
+        }
+        return reset($field);
+    }
+
+    public static function gform($form_id)
+    {
+        return GFFormsModel::get_form_meta($form_id);
     }
 
     /**
