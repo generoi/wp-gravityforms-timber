@@ -127,6 +127,8 @@ class WP_Gravityforms_Timber
             return $form_string;
         }
 
+        array_map([__CLASS__, 'prepopulate_field'], $form['fields']);
+
         $args = $this->get_form_args($form['id']);
         $context['form'] = $form;
         $context['form_id'] = $form['id'];
@@ -192,12 +194,54 @@ class WP_Gravityforms_Timber
         if (empty($field)) {
             return 'field-not-found';
         }
-        return reset($field);
+
+        $field = reset($field);
+        self::prepopulate_field($field);
+
+        return $field;
     }
 
+    /**
+     * Get the form model.
+     *
+     * @param int $form_id
+     * @return array
+     */
     public static function gform($form_id)
     {
-        return GFFormsModel::get_form_meta($form_id);
+        $form = GFFormsModel::get_form_meta($form_id);
+        array_map([__CLASS__, 'prepopulate_field'], $form['fields']);
+        return $form;
+    }
+
+    /**
+     * Prepopulate default values based on Gravity form hooks.
+     *
+     * @param GF_Field $field
+     */
+    public static function prepopulate_field($field)
+    {
+        if ($field->allowsPrepopulate) {
+            $field_values = [];
+            $input_type = $field->get_input_type();
+
+            if (in_array($input_type, ['checkbox', 'radio'])) {
+                $field_val = RGFormsModel::get_parameter_value($field->inputName, $field_values, $field);
+                if (!is_array($field_val)) {
+                    $field_val = explode(',', $field_val);
+                }
+
+                foreach ($field_val as $val) {
+                    foreach ($field->choices as $idx => $choice) {
+                        if ($choice['value'] === trim($val)) {
+                            $field->choices[$idx]['isSelected'] = TRUE;
+                        }
+                    }
+                }
+            } else {
+                $field->defaultValue = RGFormsModel::get_parameter_value($field->inputName, $field_values, $field);
+            }
+        }
     }
 
     /**
