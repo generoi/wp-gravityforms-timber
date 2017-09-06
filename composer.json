@@ -16,9 +16,23 @@
   "support": {
     "issues": "https://github.com/generoi/wp-gravityforms-timber/issues"
   },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^2.5.1"
+  },
   "require": {
     "php": ">=5.4.0",
     "composer/installers": "~1.0"
+  },
+  "scripts": {
+    "test": [
+      "vendor/bin/phpcs"
+    ]
   },
   "archive" : {
     "exclude": [

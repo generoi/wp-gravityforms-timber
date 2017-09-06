@@ -11,7 +11,7 @@ License URI:        http://opensource.org/licenses/MIT
 */
 
 if (!defined('ABSPATH')) {
-  exit;
+    exit;
 }
 
 class WP_Gravityforms_Timber
@@ -45,7 +45,8 @@ class WP_Gravityforms_Timber
         add_action('timber/twig', [$this, 'twig']);
     }
 
-    public function register_scripts() {
+    public function register_scripts()
+    {
         $path = plugin_dir_url(__FILE__);
         wp_register_script('wp-gravityforms-timber/js', $path . 'dist/wp-gravityforms-timber.js', ['jquery'], $this->version, true);
 
@@ -64,7 +65,8 @@ class WP_Gravityforms_Timber
     /**
      * Attach a Form settings option to disable twig templating.
      */
-    public function form_settings($settings, $form) {
+    public function form_settings($settings, $form)
+    {
         $settings['Timber']['timber_disable'] = '
             <tr>
             <th><label for="timber_disable">' . __('Disable timber template and use core Gravityform functionality', 'wp-gravityforms-timber') . '</label></th>
@@ -77,7 +79,8 @@ class WP_Gravityforms_Timber
     /**
      * Save custom Form settings.
      */
-    public function form_settings_save($form) {
+    public function form_settings_save($form)
+    {
         $form['timber_disable'] = rgpost('timber_disable');
         return $form;
     }
@@ -85,7 +88,8 @@ class WP_Gravityforms_Timber
     /**
      * Attach settings to General settings section of a Field.
      */
-    public function field_general_settings($position, $form_id) {
+    public function field_general_settings($position, $form_id)
+    {
         if ($position == 10) {
             ?>
             <li class="machine_name_setting field_setting">
@@ -103,7 +107,8 @@ class WP_Gravityforms_Timber
      * Process the new settings added to Fields.
      * @see field_general_settings().
      */
-    public function editor_js() {
+    public function editor_js()
+    {
         ?>
         <script>
             fieldSettings.text += ', .machine_name_setting';
@@ -120,6 +125,10 @@ class WP_Gravityforms_Timber
 
     /**
      * Render forms with twig.
+     *
+     * @param string $form_string
+     * @param array $form
+     * @return string
      */
     public function get_form($form_string, $form)
     {
@@ -161,6 +170,9 @@ class WP_Gravityforms_Timber
     /**
     * Store the arguments passed by shortcode attributes and inject them again
     * in `gform_get_form_filter`.
+    *
+    * @param array $args
+    * @return array
     */
     public function save_form_args($args)
     {
@@ -170,13 +182,22 @@ class WP_Gravityforms_Timber
     }
 
     /**
-     * Retrieve the arguments passed by shortcode attribtues.
+     * Retrieve the arguments passed by shortcode attributes.
+     *
+     * @param int $form_id
+     * @return array
      */
     protected function get_form_args($form_id)
     {
         return $this->gform_form_args[$form_id];
     }
 
+    /**
+     * Add twig functions.
+     *
+     * @param Twig_Environment $twig
+     * @return Twig_Environment
+     */
     public function twig($twig)
     {
         $twig->addFunction(new Timber\Twig_Function('gform_field', [__CLASS__, 'gform_field']));
@@ -184,6 +205,13 @@ class WP_Gravityforms_Timber
         return $twig;
     }
 
+    /**
+     * Get a specific form field.
+     *
+     * @param string $machine_name
+     * @param int $form_id
+     * @return GF_Field
+     */
     public static function gform_field($machine_name, $form_id)
     {
         $form = GFFormsModel::get_form_meta($form_id);
@@ -234,7 +262,7 @@ class WP_Gravityforms_Timber
                 foreach ($field_val as $val) {
                     foreach ($field->choices as $idx => $choice) {
                         if ($choice['value'] === trim($val)) {
-                            $field->choices[$idx]['isSelected'] = TRUE;
+                            $field->choices[$idx]['isSelected'] = true;
                         }
                     }
                 }
