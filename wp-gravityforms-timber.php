@@ -3,7 +3,7 @@
 Plugin Name:        Gravity Forms Timber
 Plugin URI:         http://genero.fi
 Description:        Some Timber integrations for Gravity Forms.
-Version:            0.0.1
+Version:            1.0.0-alpha.3
 Author:             Genero
 Author URI:         http://genero.fi/
 License:            MIT License
@@ -18,7 +18,11 @@ class WP_Gravityforms_Timber
 {
 
     private static $instance = null;
-    public $version = '1.0.0';
+    public $version = '1.0.0-alpha.3';
+    public $plugin_name = 'wp-gravityforms-timber';
+    public $github_url = 'https://github.com/generoi/wp-gravityforms-timber';
+    protected $gform_form_args = [];
+    protected $gform_validation_messages = [];
 
     public static function get_instance()
     {
@@ -28,13 +32,15 @@ class WP_Gravityforms_Timber
         return self::$instance;
     }
 
-    protected $gform_form_args = [];
-    protected $gform_validation_messages = [];
+    public function __construct()
+    {
+        register_activation_hook(__FILE__, [__CLASS__, 'activate']);
+        add_action('plugins_loaded', [$this, 'init']);
+        Puc_v4_Factory::buildUpdateChecker($this->github_url, __FILE__, $this->plugin_name);
+    }
 
     public function init()
     {
-        register_activation_hook(__FILE__, [__CLASS__, 'activate']);
-
         add_filter('gform_form_settings', [$this, 'form_settings'], 10, 2);
         add_filter('gform_pre_form_settings_save', [$this, 'form_settings_save'], 10, 2);
         add_filter('gform_get_form_filter', [$this, 'get_form'], 10, 2);
@@ -283,4 +289,8 @@ class WP_Gravityforms_Timber
     }
 }
 
-WP_Gravityforms_Timber::get_instance()->init();
+if (file_exists($composer = __DIR__ . '/vendor/autoload.php')) {
+    require_once $composer;
+}
+
+WP_Gravityforms_Timber::get_instance();
